@@ -4,7 +4,7 @@ ENTRY(__entry)
 MEMORY
 {
 	ram : org = 0x80000000, len = 4k
-	flash : org = 0x20010000, len = 0x3f0000
+	flash : org = 0x20000000, len = 0x400000
 }
 
 SECTIONS
