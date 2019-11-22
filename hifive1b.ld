@@ -1,5 +1,5 @@
 
-ENTRY(__entry)
+ENTRY(__reset)
 
 MEMORY
 {
@@ -34,3 +34,4 @@ SECTIONS
 }
 
 GPIO = 0x10012000;
+PRCI = 0x10008000;

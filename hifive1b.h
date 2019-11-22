@@ -1,21 +1,36 @@
+#include "stdint.h"
 #define BIT(x) (1 << x)
+
+
+volatile struct __PRCI
+{
+    uint32_t hfrosc;
+    uint32_t hfxosc;
+    uint32_t pllcfg;
+    uint32_t plloutdiv;
+    uint32_t _reserved0[56];
+    uint32_t procmoncfg;
+} extern PRCI;
+
 
 volatile struct __GPIO
 {
-    unsigned input_val;
-    unsigned input_en;
-    unsigned output_en;
-    unsigned output_val;
-    unsigned pull_up_enable;
-    unsigned drive_strength;
-    unsigned rise_ie;
-    unsigned rise_ip;
-    unsigned fall_ie;
-    unsigned fall_ip;
-    unsigned high_ie;
-    unsigned high_ip;
-    unsigned low_ie;
-    unsigned low_ip;
-    unsigned padding[2];
-    unsigned out_xor;
+    uint32_t input_val;
+    uint32_t input_en;
+    uint32_t output_en;
+    uint32_t output_val;
+    uint32_t pull_up_enable;
+    uint32_t drive_strength;
+    uint32_t rise_ie;
+    uint32_t rise_ip;
+    uint32_t fall_ie;
+    uint32_t fall_ip;
+    uint32_t high_ie;
+    uint32_t high_ip;
+    uint32_t low_ie;
+    uint32_t low_ip;
+    uint32_t padding[2];
+    uint32_t out_xor;
 } extern GPIO;
+
+
