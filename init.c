@@ -1,10 +1,9 @@
 
 #include "hifive1b.h"
 
-void prci_init()
+void pll_init()
 {
     // Enable hfrosc temporarily
-
     // divider, trim, enable
     // Should be default chip values
     PRCI.hfrosc = (4 << 0) | (16 << 16) | (1 << 30);
@@ -45,19 +44,28 @@ void prci_init()
 
 void __init()
 {
-    prci_init();
+    pll_init();
+
+    // Set PWM
+    PWM1.cfg = (1 << 12) | (15 << 0); // Enable always, scale bottom x bits
+    PWM1.count = 0;
+    PWM1.cmp0 = 0;
+    PWM1.cmp3 = 8000;
+
     GPIO.input_en = GPIO.input_en & ~(BIT(22));
-    GPIO.output_en = BIT(22);
-    GPIO.output_val |= BIT(22);
-    GPIO.out_xor &= ~(BIT(22));
+    GPIO.iof_en = BIT(22);
+    GPIO.iof_sel = BIT(22);
+
     while (1)
     {
+        asm("wfi");
+        /*
         GPIO.output_val |= BIT(22);
         for (int i = 0; i < 1000000; i++)
           asm("");
         GPIO.output_val &= ~(BIT(22));
         for (int i = 0; i < 1000000; i++)
           asm("");
-
+        */
     }
 }
