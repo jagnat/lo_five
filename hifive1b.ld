@@ -15,24 +15,39 @@ SECTIONS
         *(.entry)
         . = ALIGN(4);
         *(.text)
+        . = ALIGN(4);
 	} > flash
 
 	.rodata :
 	{
         *(.rodata)
+        . = ALIGN(4);
 	} > flash
 
     .data :
     {
+        *(.sdata)
+        . = ALIGN(4);
         *(.data)
+        . = ALIGN(4);
     } > ram AT > flash
 
 	.bss :
 	{
         *(.bss)
+        . = ALIGN(4);
 	} > ram
 }
 
+__DATA_FLASH = LOADADDR(.data);
+__DATA_RAM = ADDR(.data);
+__DATA_RAM_END = ADDR(.data) + SIZEOF(.data);
+__BSS_ADDR = ADDR(.bss);
+__BSS_END = ADDR(.bss) + SIZEOF(.bss);
+
+__SP = ORIGIN(ram) + LENGTH(ram);
+
+PLIC = 0x0c000000;
 GPIO = 0x10012000;
 PRCI = 0x10008000;
 

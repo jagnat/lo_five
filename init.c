@@ -1,7 +1,8 @@
 
 #include "hifive1b.h"
+#include "csr_encoding.h"
 
-void pll_init()
+void __pll_init()
 {
     // Enable hfrosc temporarily
     // divider, trim, enable
@@ -42,12 +43,36 @@ void pll_init()
     PRCI.pllcfg |= (1 << 16); // Turn on pllsel
 }
 
+extern void __irq_proc();
+
+void __init_data_and_bss()
+{
+    extern uint32_t __DATA_FLASH;
+    extern uint32_t __DATA_RAM;
+    extern uint32_t __DATA_RAM_END;
+    extern uint32_t __BSS_ADDR;
+    extern uint32_t __BSS_END;
+
+    register uint32_t *data_flash = &__DATA_FLASH;
+    register uint32_t *data_ram = &__DATA_RAM;
+
+    while (data_ram != &__DATA_RAM_END)
+        *(data_ram++) = *(data_flash++);
+
+    register uint32_t *bss = &__BSS_ADDR;
+    while (bss != &__BSS_END)
+        *(bss++) = 0;
+}
+
 void __init()
 {
-    pll_init();
+    __init_data_and_bss();
+    write_csr(mtvec, &__irq_proc);
+
+    __pll_init();
 
     // Set PWM
-    PWM1.cfg = (1 << 12) | (15 << 0); // Enable always, scale bottom x bits
+    PWM1.cfg = (1 << 12) | (7 << 0); // Enable always, scale bottom x bits
     PWM1.count = 0;
     PWM1.cmp0 = 0;
     PWM1.cmp3 = 8000;
@@ -59,13 +84,11 @@ void __init()
     while (1)
     {
         asm("wfi");
-        /*
-        GPIO.output_val |= BIT(22);
-        for (int i = 0; i < 1000000; i++)
-          asm("");
-        GPIO.output_val &= ~(BIT(22));
-        for (int i = 0; i < 1000000; i++)
-          asm("");
-        */
     }
 }
+
+void __irq_handler(int cause)
+{
+    asm("");
+}
+
