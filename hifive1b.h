@@ -17,8 +17,23 @@ volatile struct __PLIC
 
 volatile struct __PRCI
 {
+    #define HFROSC_DIV_SHIFT 0
+    #define HFROSC_TRIM_SHIFT 16
+    #define HFROSC_ENABLE BIT(30)
+    #define HFROSC_READY BIT(31)
     uint32_t hfrosc;
+
+    #define HFXOSC_ENABLE BIT(30)
+    #define HFXOSC_READY BIT(31)
     uint32_t hfxosc;
+
+    #define PLL_R_SHIFT 0
+    #define PLL_F_SHIFT 4
+    #define PLL_Q_SHIFT 10
+    #define PLL_SEL BIT(16)
+    #define PLL_REF_SEL BIT(17)
+    #define PLL_BYPASS BIT(18)
+    #define PLL_LOCK BIT(31)
     uint32_t pllcfg;
     uint32_t plloutdiv;
     uint32_t _reserved0[56];
