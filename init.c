@@ -30,12 +30,13 @@ void __pll_init()
     pll |= PLL_BYPASS; // Enable bypass while setting values
 
     // Set no final division
-    PRCI.plloutdiv = (1 << 8);
+    PRCI.plloutdiv = PLL_DIVIDE_BY_1;
 
     PRCI.pllcfg = pll; // set pll
     PRCI.pllcfg &= ~PLL_BYPASS; // turn off bypass
 
     // Wait some time
+    // TODO: Tune this maybe using rt clock
     for (int i = 0; i < 1000000; i++) asm("");
 
     // Now safe to check pll lock
@@ -68,7 +69,6 @@ void __init()
 {
     __init_data_and_bss();
     write_csr(mtvec, &__irq_proc);
-
     __pll_init();
 
     // Set PWM

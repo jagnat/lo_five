@@ -35,6 +35,9 @@ volatile struct __PRCI
     #define PLL_BYPASS BIT(18)
     #define PLL_LOCK BIT(31)
     uint32_t pllcfg;
+
+    #define PLL_OUTDIV_SHIFT 0
+    #define PLL_DIVIDE_BY_1 BIT(8)
     uint32_t plloutdiv;
     uint32_t _reserved0[56];
     uint32_t procmoncfg;
