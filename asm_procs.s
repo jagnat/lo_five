@@ -6,11 +6,11 @@ __reset:
     la sp, __SP
     call __init
 
+    .section .text
     .global __irq_proc
     .align 2
     .type __irq_proc,@function
 __irq_proc:
-# Save register state on stack
     addi sp, sp, -32*4
     sw x1,  1 *4(sp)
     sw x2,  2 *4(sp)

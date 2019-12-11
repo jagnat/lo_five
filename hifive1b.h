@@ -39,6 +39,7 @@ volatile struct __PRCI
     #define PLL_OUTDIV_SHIFT 0
     #define PLL_DIVIDE_BY_1 BIT(8)
     uint32_t plloutdiv;
+
     uint32_t _reserved0[56];
     uint32_t procmoncfg;
 } extern PRCI;
@@ -67,7 +68,31 @@ volatile struct __GPIO
 
 struct __PWM
 {
+    #define PWM_SCALE_SHIFT 0
+
+    #define PWM_STICKY BIT(8)
+    #define PWM_ZEROCMP BIT(9)
+    #define PWM_DEGLITCH BIT(10)
+
+    #define PWM_ENALWAYS BIT(12)
+    #define PWM_ENONESHOT BIT(13)
+
+    #define PWM_CMP0CENTER BIT(16)
+    #define PWM_CMP1CENTER BIT(17)
+    #define PWM_CMP2CENTER BIT(18)
+    #define PWM_CMP3CENTER BIT(19)
+
+    #define PWM_CMP0GANG BIT(24)
+    #define PWM_CMP1GANG BIT(25)
+    #define PWM_CMP2GANG BIT(26)
+    #define PWM_CMP3GANG BIT(27)
+
+    #define PWM_CMP0IP BIT(28)
+    #define PWM_CMP1IP BIT(29)
+    #define PWM_CMP2IP BIT(30)
+    #define PWM_CMP3IP BIT(31)
     uint32_t cfg;
+
     uint32_t reserved0;
     uint32_t count;
     uint32_t reserved1;
