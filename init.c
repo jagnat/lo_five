@@ -1,6 +1,5 @@
-
 #include "hifive1b.h"
-#include "csr_encoding.h"
+#include "interrupts.h"
 
 void __init_pll()
 {
@@ -64,51 +63,36 @@ void __init_data_and_bss()
         *(bss++) = 0;
 }
 
-void __init_plic()
-{
-    extern void __irq_proc();
-
-    clear_csr(mstatus, MSTATUS_MIE);
-    for (int i = 1; i < 53; i++)
-    {
-        PLIC.priority[i] = 0;
-    }
-
-    PLIC.enable1 = 0;
-    PLIC.enable2 = 0;
-    PLIC.threshold = 0;
-
-    write_csr(mtvec, &__irq_proc);
-    set_csr(mie, MIP_MEIP);
-}
+extern void __init_interrupts();
 
 void __init()
 {
-    __init_plic();
+    disable_interrupts();
     __init_data_and_bss();
     __init_pll();
+    __init_interrupts();
 
     // Enable pwm1cmp0 interrupt
-    // pwm1 uses interrupts 44-47
     // pwm1cmp0 is interrupt 44
-    PLIC.priority[44] = 1;
-    PLIC.enable2 = (1 << (44 % 32));
+    void pwm1_interrupt();
+    plic_enable(44, 1);
+    plic_set_handler(44, pwm1_interrupt);
 
     // Set PWM
     PWM1.cfg = 0;
     PWM1.cmp0 = 65535;
-    PWM1.cmp1 = 2000;
-    PWM1.cmp2 = 2000;
-    PWM1.cmp3 = 2000;
+    PWM1.cmp1 = 200;
+    PWM1.cmp2 = 200;
+    PWM1.cmp3 = 200;
     PWM1.count = 0;
     PWM1.s = 0;
-    PWM1.cfg = PWM_ENALWAYS | (14 << PWM_SCALE_SHIFT) | PWM_ZEROCMP | PWM_STICKY;
+    PWM1.cfg = PWM_ENALWAYS | (1 << PWM_SCALE_SHIFT) | PWM_ZEROCMP | PWM_STICKY;
 
     GPIO.input_en = 0;
     GPIO.iof_en = BIT(19) | BIT(21) | BIT(22);
     GPIO.iof_sel = BIT(19) | BIT(21) | BIT(22);
 
-    set_csr(mstatus, MSTATUS_MIE);
+    enable_interrupts();
 
     while (1)
     {
@@ -116,11 +100,8 @@ void __init()
     }
 }
 
-void __irq_handler(int cause)
+void pwm1_interrupt()
 {
-    uint32_t irq_id = PLIC.claim_complete;
-    // Clear interrupt pending bits of all compares
-    PWM1.cfg &= ~(PWM_CMP0IP | PWM_CMP1IP | PWM_CMP2IP | PWM_CMP3IP);
-    PLIC.claim_complete = irq_id;
+    PWM1.cfg &= ~PWM_IP_BITS;
 }
 

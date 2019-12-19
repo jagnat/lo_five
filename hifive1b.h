@@ -1,6 +1,11 @@
+#ifndef __HIFIVE1B_H__
+#define __HIFIVE1B_H__
+
+#include "csr_encoding.h"
 #include "stdint.h"
 #define BIT(x) (1 << x)
 
+#define PLIC_NUM_INTERRUPTS 52
 volatile struct __PLIC
 {
     uint32_t priority[53];
@@ -14,6 +19,30 @@ volatile struct __PLIC
     uint32_t threshold;
     uint32_t claim_complete;
 } extern PLIC;
+
+volatile struct __WDT
+{
+    uint32_t cfg;
+    uint32_t reserved0;
+    uint32_t count;
+    uint32_t reserved1;
+    uint32_t s;
+    uint32_t reserved2;
+    uint32_t feed;
+    uint32_t key;
+    uint32_t cmp0;
+} extern WDT;
+
+volatile struct __RTC
+{
+    uint32_t cfg;
+    uint32_t reserved0;
+    uint32_t countlo;
+    uint32_t counthi;
+    uint32_t s;
+    uint32_t reserved1[3];
+    uint32_t cmp0;
+} extern RTC;
 
 volatile struct __PRCI
 {
@@ -91,6 +120,7 @@ struct __PWM
     #define PWM_CMP1IP BIT(29)
     #define PWM_CMP2IP BIT(30)
     #define PWM_CMP3IP BIT(31)
+    #define PWM_IP_BITS (BIT(28) | BIT(29) | BIT(30) | BIT(31))
     uint32_t cfg;
 
     uint32_t reserved0;
@@ -103,3 +133,5 @@ struct __PWM
 volatile extern struct __PWM PWM0;
 volatile extern struct __PWM PWM1;
 volatile extern struct __PWM PWM2;
+
+#endif // __HIFIVE1B_H__

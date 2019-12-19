@@ -126,6 +126,9 @@
 #define IRQ_COP      12
 #define IRQ_HOST     13
 
+#define MCAUSE_INT 0x80000000
+#define MCAUSE_CODE_MASK 0x3f
+
 #define DEFAULT_RSTVEC     0x00001000
 #define DEFAULT_NMIVEC     0x00001004
 #define DEFAULT_MTVEC      0x00001010
