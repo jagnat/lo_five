@@ -11,6 +11,9 @@ void __init_pll()
     // Wait for clock to be available
     while ((PRCI.hfrosc & HFROSC_READY) == 0) asm("");
 
+    // Turn off low frequency ring osc, unnecessary
+    AON.lfrosccfg &= ~LFROSC_ENABLE;
+
     // Disable PLL, to run from hfrosc while we configure
     PRCI.pllcfg &= ~(1 << 16); // pllsel
     
@@ -63,36 +66,33 @@ void __init_data_and_bss()
         *(bss++) = 0;
 }
 
-extern void __init_interrupts();
+void time_handler()
+{
+    CLINT.mtime = 0;
+    GPIO.output_val = ~BIT(19);
+    for (int i = 0; i < 30000; i++)
+        asm("");
+    GPIO.output_val = BIT(19);
+}
 
 void __init()
 {
     disable_interrupts();
     __init_data_and_bss();
     __init_pll();
+
+    extern void __init_interrupts();
     __init_interrupts();
 
-    // Enable pwm1cmp0 interrupt
-    // pwm1cmp0 is interrupt 44
-    void pwm1_interrupt();
-    plic_enable(44, 1);
-    plic_set_handler(44, pwm1_interrupt);
+    CLINT.mtimecmp = 32768;
 
-    // Set PWM
-    PWM1.cfg = 0;
-    PWM1.cmp0 = 65535;
-    PWM1.cmp1 = 200;
-    PWM1.cmp2 = 200;
-    PWM1.cmp3 = 200;
-    PWM1.count = 0;
-    PWM1.s = 0;
-    PWM1.cfg = PWM_ENALWAYS | (1 << PWM_SCALE_SHIFT) | PWM_ZEROCMP | PWM_STICKY;
+    timer_set_handler(time_handler);
 
-    GPIO.input_en = 0;
-    GPIO.iof_en = BIT(19) | BIT(21) | BIT(22);
-    GPIO.iof_sel = BIT(19) | BIT(21) | BIT(22);
-
+    enable_timer_interrupts();
     enable_interrupts();
+
+    GPIO.output_en = BIT(19);
+    GPIO.output_val = BIT(19);
 
     while (1)
     {
@@ -100,8 +100,5 @@ void __init()
     }
 }
 
-void pwm1_interrupt()
-{
-    PWM1.cfg &= ~PWM_IP_BITS;
-}
+
 

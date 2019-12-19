@@ -5,6 +5,15 @@
 #include "stdint.h"
 #define BIT(x) (1 << x)
 
+volatile struct __CLINT
+{
+    uint32_t msip;
+    uint32_t reserved0 [4095];
+    uint64_t mtimecmp;
+    uint32_t reserved1 [8188];
+    uint64_t mtime;
+} extern CLINT;
+
 #define PLIC_NUM_INTERRUPTS 52
 volatile struct __PLIC
 {
@@ -43,6 +52,15 @@ volatile struct __RTC
     uint32_t reserved1[3];
     uint32_t cmp0;
 } extern RTC;
+
+volatile struct __AON
+{
+    #define LFROSC_ENABLE BIT(30)
+    uint32_t lfrosccfg;
+    uint32_t reserved0[2];
+    uint32_t lfclkmux;
+    uint32_t backup[16];
+} extern AON;
 
 volatile struct __PRCI
 {

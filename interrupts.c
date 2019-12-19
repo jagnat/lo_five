@@ -4,6 +4,13 @@
 static 
 interrupt_handler plic_handlers[PLIC_NUM_INTERRUPTS];
 
+static interrupt_handler timer_handler;
+
+void timer_set_handler(interrupt_handler proc)
+{
+    timer_handler = proc;
+}
+
 void plic_clear()
 {
     disable_interrupts();
@@ -51,8 +58,16 @@ void __init_interrupts()
     extern void __irq_proc();
     write_csr(mtvec, &__irq_proc);
 
-    // turn on external interrupts
-    set_csr(mie, MIP_MEIP);
+    for (int i = 0; i < PLIC_NUM_INTERRUPTS; i++)
+    {
+        plic_handlers[i] = 0;
+    }
+
+    timer_handler = 0;
+
+    disable_external_interrupts();
+    disable_timer_interrupts();
+    disable_software_interrupts();
 }
 
 void __handle_plic_interrupt()
@@ -64,9 +79,21 @@ void __handle_plic_interrupt()
         return; // TODO: assert
     }
 
-    plic_handlers[interrupt - 1]();
+    if (plic_handlers[interrupt - 1])
+        plic_handlers[interrupt - 1]();
 
     PLIC.claim_complete = interrupt;
+}
+
+void __handle_timer_interrupt()
+{
+    if (timer_handler)
+        timer_handler();
+}
+
+void __handle_software_interrupt()
+{
+
 }
 
 void __irq_handler(int cause)
@@ -78,7 +105,10 @@ void __irq_handler(int cause)
         {
             // TODO: add syscall and systick here
             case IRQ_M_SOFT:
+                __handle_software_interrupt();
+                break;
             case IRQ_M_TIMER:
+                __handle_timer_interrupt();
                 break;
             case IRQ_M_EXT:
                 __handle_plic_interrupt();
