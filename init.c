@@ -1,28 +1,37 @@
 #include "hifive1b.h"
 #include "interrupts.h"
 
-void __init_pll()
+void setup() __attribute((weak));
+void loop() __attribute((weak));
+
+void __use_hfrosc()
 {
-    // Enable hfrosc temporarily
-    // divider, trim, enable
     // Should be default chip values
     PRCI.hfrosc = (4 << HFROSC_DIV_SHIFT) | (16 << HFROSC_TRIM_SHIFT) | HFROSC_ENABLE;
 
     // Wait for clock to be available
     while ((PRCI.hfrosc & HFROSC_READY) == 0) asm("");
+    
+    // Disable PLL, to run from hfrosc while we configure
+    PRCI.pllcfg &= ~PLL_SEL;
+}
 
+void __init_pll()
+{
     // Turn off low frequency ring osc, unnecessary
     AON.lfrosccfg &= ~LFROSC_ENABLE;
 
-    // Disable PLL, to run from hfrosc while we configure
-    PRCI.pllcfg &= ~(1 << 16); // pllsel
-    
+    QSPI0.sckdiv = 8;
+
+    __use_hfrosc();
+ 
     // Turn on hfxosc
     PRCI.hfxosc = HFXOSC_ENABLE;
     while ((PRCI.hfxosc & HFXOSC_READY) == 0) asm("");
-
+    
     // Bypass PLL while configuring
     PRCI.pllcfg |= PLL_BYPASS;
+
 
     // Configure pll values
     uint32_t pll = 0;
@@ -37,9 +46,9 @@ void __init_pll()
     PRCI.pllcfg = pll; // set pll
     PRCI.pllcfg &= ~PLL_BYPASS; // turn off bypass
 
-    // Wait some time
-    // TODO: Tune this maybe using rt clock
-    for (int i = 0; i < 1000000; i++) asm("");
+    // Wait 100 us to stabilize
+    uint64_t now = CLINT.mtime;
+    while (CLINT.mtime < now + 4) asm("");
 
     // Now safe to check pll lock
     while ((PRCI.pllcfg & PLL_LOCK) == 0) asm("");
@@ -66,13 +75,44 @@ void __init_data_and_bss()
         *(bss++) = 0;
 }
 
-void time_handler()
+uint32_t __measure_cpu_freq(int num_ticks)
 {
-    CLINT.mtime = 0;
-    GPIO.output_val = ~BIT(19);
-    for (int i = 0; i < 30000; i++)
+    uint32_t tmp = CLINT.mtime;
+    uint32_t start = tmp;
+    uint32_t current;
+
+    while (start == tmp) // Wait for an rtc tick
+    {
+        start = CLINT.mtime;
+    }
+
+    uint32_t cycle_start = read_csr(mcycle);
+
+    while (RTC.countlo - start < num_ticks)
+    {
         asm("");
-    GPIO.output_val = BIT(19);
+    }
+
+    uint32_t mcycle_dt = read_csr(mcycle) - cycle_start;
+
+    return (mcycle_dt / num_ticks) * 32768 + ((mcycle_dt % num_ticks) * 32768) / num_ticks;
+}
+
+uint32_t get_cpu_freq()
+{
+    static uint32_t freq = 0;
+    if (!freq)
+    {
+        __measure_cpu_freq(1);
+        freq = __measure_cpu_freq(10);
+    }
+    return freq;
+}
+
+void __systick()
+{
+    // TODO: add some kind of scheduling here
+    CLINT.mtime = 0;
 }
 
 void __init()
@@ -86,19 +126,24 @@ void __init()
 
     CLINT.mtimecmp = 32768;
 
-    timer_set_handler(time_handler);
+    //timer_set_handler(__systick);
 
-    enable_timer_interrupts();
+    //enable_timer_interrupts();
     enable_interrupts();
 
-    GPIO.output_en = BIT(19);
-    GPIO.output_val = BIT(19);
+    if (setup)
+    {
+        setup();
+    }
+
+    while (loop)
+    {
+        loop();
+    }
 
     while (1)
     {
         asm("wfi");
     }
 }
-
-
 
