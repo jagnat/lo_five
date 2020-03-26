@@ -2,7 +2,7 @@
 #include "interrupts.h"
 #include "task.h"
 
-TASK(__main_task__, 0, 0, 100, 0);
+NEW_TASK(main_task, 0, 0, 100, 0);
 
 void setup() __attribute((weak));
 void loop() __attribute((weak));
@@ -126,7 +126,7 @@ void __init()
     __init_data_and_bss();
     __init_pll();
 
-    //current_task = __main_task__;
+    current_task = __main_task_ptr;
 
     extern void __init_interrupts();
     __init_interrupts();
