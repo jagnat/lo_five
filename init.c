@@ -1,8 +1,12 @@
 #include "hifive1b.h"
 #include "interrupts.h"
+#include "task.h"
+
+TASK(__main_task__, 0, 0, 100, 0);
 
 void setup() __attribute((weak));
 void loop() __attribute((weak));
+
 
 void __use_hfrosc()
 {
@@ -46,7 +50,7 @@ void __init_pll()
     PRCI.pllcfg = pll; // set pll
     PRCI.pllcfg &= ~PLL_BYPASS; // turn off bypass
 
-    // Wait 100 us to stabilize
+    // Wait 122 us to stabilize
     uint64_t now = CLINT.mtime;
     while (CLINT.mtime < now + 4) asm("");
 
@@ -112,6 +116,7 @@ uint32_t get_cpu_freq()
 void __systick()
 {
     // TODO: add some kind of scheduling here
+    GPIO.output_val = GPIO.output_val == 0? BIT(19) : 0;
     CLINT.mtime = 0;
 }
 
@@ -121,20 +126,26 @@ void __init()
     __init_data_and_bss();
     __init_pll();
 
+    //current_task = __main_task__;
+
     extern void __init_interrupts();
     __init_interrupts();
 
     CLINT.mtimecmp = 32768;
 
-    //timer_set_handler(__systick);
+    timer_set_handler(__systick);
 
-    //enable_timer_interrupts();
-    enable_interrupts();
+    GPIO.output_en = BIT(19);
+    GPIO.output_val = BIT(19);
+
+    enable_timer_interrupts();
 
     if (setup)
     {
         setup();
     }
+
+    enable_interrupts();
 
     while (loop)
     {

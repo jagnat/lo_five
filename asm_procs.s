@@ -44,6 +44,10 @@ __irq_proc:
     sw x30, 30*4(sp)
     sw x31, 31*4(sp)
     
+    lw a5, (.CT)
+    sw x2, 4(a5)
+
+    
     # Pass exception cause as arg
     csrr a0, mcause
     call __irq_handler
@@ -82,3 +86,6 @@ __irq_proc:
 
     addi sp, sp, 32 * 4
     mret
+    .align 4
+.CT:
+    .word current_task
