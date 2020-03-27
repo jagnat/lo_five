@@ -3,10 +3,10 @@
 #include "task.h"
 
 NEW_TASK(main_task, 0, 0, 100, 0);
+void* const __INITIAL_SP = (void*)(&main_task + 1);
 
 void setup() __attribute((weak));
 void loop() __attribute((weak));
-
 
 void __use_hfrosc()
 {

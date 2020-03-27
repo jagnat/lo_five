@@ -1,15 +1,16 @@
-
     .section .entry
     .global __reset
     .type __reset,@function
+    .align 2
 __reset:
-    la sp, __SP
+    lw t0, (.SP_LOC)
+    lw sp, (t0)
     call __init
 
     .section .text
     .global __irq_proc
-    .align 2
     .type __irq_proc,@function
+    .align 2
 __irq_proc:
     addi sp, sp, -32*4
     sw x1,  1 *4(sp)
@@ -48,17 +49,28 @@ __irq_proc:
     csrr t0, mepc
     sw t0, 0*4(sp)
     
-    lw t1, (.CT) # Load address of current_task ptr
-    lw t1, (t1) # Load address of task
-    sw sp, 4(t1) # Save sp into current_task.sp
+    # Load saved register s0 with the address of the current task
+    lw s0, (.CUR_TASK)
+    lw t0, (s0) # Load address of task
+
+    # Save sp into current_task.sp
+    sw sp, 4(t0)
     
     # Pass exception cause as arg
     csrr a0, mcause
+
+    # This may schedule a new task
     call __irq_handler
 
+    # Get sp from current_task.sp
+    lw t0, (s0) # Load address of task
+    lw sp, 4(t0)
+
+    # Load pc from top of current task stack
     lw t0,  0 *4(sp)
     csrw mepc, t0
 
+    # Load the rest of the regs
     lw x1,  1 *4(sp)
     lw x2,  2 *4(sp)
     lw x3,  3 *4(sp)
@@ -95,5 +107,7 @@ __irq_proc:
     mret
 
     .align 4
-.CT:
+.CUR_TASK:
     .word current_task
+.SP_LOC:
+    .word __INITIAL_SP

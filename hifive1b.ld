@@ -45,8 +45,6 @@ __DATA_RAM_END = ADDR(.data) + SIZEOF(.data);
 __BSS_ADDR = ADDR(.bss);
 __BSS_END = ADDR(.bss) + SIZEOF(.bss);
 
-__SP = ORIGIN(ram) + LENGTH(ram);
-
 CLINT      = 0x02000000;
 PLIC       = 0x0c000000;
 GPIO       = 0x10012000;
