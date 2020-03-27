@@ -10,14 +10,11 @@ struct _task_t
     unsigned short effective_priority;
 };
 
-extern task_t* current_task;
-
 /* This macro defines a new task with the specified parameters,
  * which will then be scheduled to run alongside the main task.
  * The task will run the void procedure(void*) function, which
  * should never return.
  */
-// TODO: Fill out registers
 // TODO: Rework structure
 #define NEW_TASK(name, procedure, priority, stacksize, arg) \
 struct { \

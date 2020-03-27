@@ -2,9 +2,6 @@
 #include "interrupts.h"
 #include "task.h"
 
-NEW_TASK(main_task, 0, 0, 100, 0);
-void* const __INITIAL_SP = (void*)(&main_task + 1);
-
 void setup() __attribute((weak));
 void loop() __attribute((weak));
 
@@ -113,30 +110,17 @@ uint32_t get_cpu_freq()
     return freq;
 }
 
-void __systick()
-{
-    // TODO: add some kind of scheduling here
-    GPIO.output_val = GPIO.output_val == 0? BIT(22) : 0;
-    CLINT.mtime = 0;
-}
-
 void __init()
 {
     disable_interrupts();
     __init_data_and_bss();
     __init_pll();
 
-    current_task = __main_task_ptr;
-
     extern void __init_interrupts();
     __init_interrupts();
 
-    CLINT.mtimecmp = 32768;
-
-    timer_set_handler(__systick);
-
-    GPIO.output_en = BIT(22);
-    GPIO.output_val = BIT(22);
+    extern void __init_tasks();
+    __init_tasks();
 
     enable_timer_interrupts();
 
