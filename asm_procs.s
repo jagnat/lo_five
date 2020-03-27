@@ -43,14 +43,21 @@ __irq_proc:
     sw x29, 29*4(sp)
     sw x30, 30*4(sp)
     sw x31, 31*4(sp)
-    
-    lw a5, (.CT)
-    sw x2, 4(a5)
 
+    # Save program counter at top of stack
+    csrr t0, mepc
+    sw t0, 0*4(sp)
+    
+    lw t1, (.CT) # Load address of current_task ptr
+    lw t1, (t1) # Load address of task
+    sw sp, 4(t1) # Save sp into current_task.sp
     
     # Pass exception cause as arg
     csrr a0, mcause
     call __irq_handler
+
+    lw t0,  0 *4(sp)
+    csrw mepc, t0
 
     lw x1,  1 *4(sp)
     lw x2,  2 *4(sp)
@@ -86,6 +93,7 @@ __irq_proc:
 
     addi sp, sp, 32 * 4
     mret
+
     .align 4
 .CT:
     .word current_task

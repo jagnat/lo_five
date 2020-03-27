@@ -116,7 +116,7 @@ uint32_t get_cpu_freq()
 void __systick()
 {
     // TODO: add some kind of scheduling here
-    GPIO.output_val = GPIO.output_val == 0? BIT(19) : 0;
+    GPIO.output_val = GPIO.output_val == 0? BIT(22) : 0;
     CLINT.mtime = 0;
 }
 
@@ -135,8 +135,8 @@ void __init()
 
     timer_set_handler(__systick);
 
-    GPIO.output_en = BIT(19);
-    GPIO.output_val = BIT(19);
+    GPIO.output_en = BIT(22);
+    GPIO.output_val = BIT(22);
 
     enable_timer_interrupts();
 
