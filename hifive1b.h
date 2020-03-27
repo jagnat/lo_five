@@ -45,6 +45,7 @@ volatile struct __WDT
 
 volatile struct __RTC
 {
+#define RTC_ENALWAYS BIT(12)
     uint32_t cfg;
     uint32_t reserved0;
     uint32_t countlo;

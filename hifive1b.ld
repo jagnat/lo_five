@@ -18,6 +18,12 @@ SECTIONS
         . = ALIGN(4);
 	} > flash
 
+    .tasks :
+    {
+        *(.tasks)
+        . = ALIGN(4);
+    } > flash
+
 	.rodata :
 	{
         *(.rodata)
@@ -44,6 +50,8 @@ __DATA_RAM = ADDR(.data);
 __DATA_RAM_END = ADDR(.data) + SIZEOF(.data);
 __BSS_ADDR = ADDR(.bss);
 __BSS_END = ADDR(.bss) + SIZEOF(.bss);
+__TASKS_ADDR = ADDR(.tasks);
+__TASKS_END = ADDR(.tasks) + SIZEOF(.tasks);
 
 CLINT      = 0x02000000;
 PLIC       = 0x0c000000;

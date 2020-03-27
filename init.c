@@ -89,7 +89,7 @@ uint32_t __measure_cpu_freq(int num_ticks)
 
     uint32_t cycle_start = read_csr(mcycle);
 
-    while (RTC.countlo - start < num_ticks)
+    while (CLINT.mtime - start < num_ticks)
     {
         asm("");
     }

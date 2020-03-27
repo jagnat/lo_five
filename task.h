@@ -10,12 +10,30 @@ struct _task_t
     unsigned short effective_priority;
 };
 
+typedef struct
+{
+    unsigned count;
+    task_t *waiting;
+} sem_t;
+
+typedef struct
+{
+    unsigned locked;
+    task_t* waiting;
+    task_t* owner;
+} mutex_t;
+
+// Task utility functions
+void yield();
+void schedule();
+void enqueue_task(task_t *task);
+task_t* dequeue_task();
+
 /* This macro defines a new task with the specified parameters,
  * which will then be scheduled to run alongside the main task.
  * The task will run the void procedure(void*) function, which
  * should never return.
  */
-// TODO: Rework structure
 #define NEW_TASK(name, procedure, priority, stacksize, arg) \
 struct { \
     task_t task; \
@@ -26,7 +44,7 @@ struct { \
 } static name = { \
     {0, &(name.x31), priority, priority}, \
     {0}, \
-    procedure, \
+    (unsigned)procedure, \
     0, (unsigned)(&(name.pc)), 0, \
     0, 0, 0, 0, \
     0, 0, arg, 0, \
@@ -36,6 +54,6 @@ struct { \
     0, 0, 0, 0, \
     0, 0, 0, 0 \
 }; \
-void* const __##name##_ptr = &name;
+void* const __##name##_ptr __attribute((section(".tasks"))) = &name;
 
 #endif // __TASK_H__

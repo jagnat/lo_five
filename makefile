@@ -1,7 +1,6 @@
 
 OUTPUT=lofive
-OBJS = init.o interrupts.o asm_procs.o task.o
-HDRS = 
+OBJS = init.o interrupts.o asm_procs.o task.o program.o
 
 $(OUTPUT): $(OBJS) hifive1b.h hifive1b.ld
 	riscv-sifive-elf-ld -melf32lriscv -T hifive1b.ld -o $(OUTPUT) $(OBJS)
