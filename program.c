@@ -3,7 +3,7 @@
 
 void task2();
 
-//NEW_TASK(blinky, task2, 0, 100, 0);
+NEW_TASK(blinky, task2, 0, 100, 0);
 
 void setup()
 {
@@ -25,8 +25,11 @@ void loop()
 
 void task2()
 {
-    while (RTC.countlo % 16384 < 8192) asm("");
-    GPIO.output_val &= ~BIT(19);
-    while (RTC.countlo % 16384 >= 8192) asm("");
-    GPIO.output_val |= BIT(19);
+    while (1)
+    {
+        while (RTC.countlo % 16384 < 8192) asm("");
+        GPIO.output_val &= ~BIT(19);
+        while (RTC.countlo % 16384 >= 8192) asm("");
+        GPIO.output_val |= BIT(19);
+    }
 }
