@@ -1,20 +1,7 @@
     .global current_task
     .global __INITIAL_SP
     
-    .section .entry
-    .global __reset
-    .type __reset,@function
-    .align 2
-__reset:
-    lw sp, __INITIAL_SP
-    call __init
-
-    .section .text
-
-    .global __irq_proc
-    .type __irq_proc,@function
-    .align 2
-__irq_proc:
+.macro SAVE_CTX
     addi sp, sp, -32*4
     sw x1,  1 *4(sp)
     sw x2,  2 *4(sp)
@@ -48,24 +35,23 @@ __irq_proc:
     sw x30, 30*4(sp)
     sw x31, 31*4(sp)
 
-    # Save program counter at top of stack
+    # Store sp in current task block
+    lw t0, current_task
+    sw sp, 4(t0)
+.endm
+
+.macro SAVE_EPC
     csrr t0, mepc
     sw t0, 0*4(sp)
-    
-    # Load t0 with the current task's base address
-    lw t0, current_task
+.endm
 
-    # Save sp into current_task.sp
-    sw sp, 4(t0)
-    
-    # Pass exception cause as arg
-    csrr a0, mcause
+.macro SAVE_RA
+    sw ra, 0*4(sp)
+.endm
 
-    # This may schedule a new task
-    call __irq_handler
-
+.macro LOAD_CTX
     # Get sp from current_task.sp
-    lw t0, current_task # Load address of task
+    lw t0, current_task
     lw sp, 4(t0)
 
     # Load pc from top of current task stack
@@ -106,4 +92,26 @@ __irq_proc:
     lw x31, 31*4(sp)
 
     addi sp, sp, 32 * 4
+.endm
+
+    .section .entry
+    .global __reset
+    .type __reset,@function
+    .align 2
+__reset:
+    lw sp, __INITIAL_SP
+    call __init
+
+    .section .text
+
+    .global __irq_proc
+    .type __irq_proc,@function
+    .align 2
+__irq_proc:
+    SAVE_CTX
+    SAVE_EPC
+    # Pass cause as first arg to handler
+    csrr a0, mcause
+    call __irq_handler
+    LOAD_CTX
     mret
