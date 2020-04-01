@@ -1,13 +1,16 @@
+    .global current_task
+    .global __INITIAL_SP
+    
     .section .entry
     .global __reset
     .type __reset,@function
     .align 2
 __reset:
-    lw t0, (.SP_LOC)
-    lw sp, (t0)
+    lw sp, __INITIAL_SP
     call __init
 
     .section .text
+
     .global __irq_proc
     .type __irq_proc,@function
     .align 2
@@ -49,9 +52,8 @@ __irq_proc:
     csrr t0, mepc
     sw t0, 0*4(sp)
     
-    # Load saved register s0 with the address of the current task
-    lw s0, (.CUR_TASK)
-    lw t0, (s0) # Load address of task
+    # Load t0 with the current task's base address
+    lw t0, current_task
 
     # Save sp into current_task.sp
     sw sp, 4(t0)
@@ -63,7 +65,7 @@ __irq_proc:
     call __irq_handler
 
     # Get sp from current_task.sp
-    lw t0, (s0) # Load address of task
+    lw t0, current_task # Load address of task
     lw sp, 4(t0)
 
     # Load pc from top of current task stack
@@ -105,9 +107,3 @@ __irq_proc:
 
     addi sp, sp, 32 * 4
     mret
-
-    .align 4
-.CUR_TASK:
-    .word current_task
-.SP_LOC:
-    .word __INITIAL_SP

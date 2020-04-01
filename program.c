@@ -17,9 +17,9 @@ void setup()
 
 void loop()
 {
-    while (RTC.countlo % 32768 < 16384) asm("");
+    while (RTC.countlo % 65536 < 32768) asm("");
     GPIO.output_val &= ~BIT(21);
-    while (RTC.countlo % 32768 >= 16384) asm("");
+    while (RTC.countlo % 65536 >= 32768) asm("");
     GPIO.output_val |= BIT(21);
 }
 
@@ -27,9 +27,9 @@ void task2()
 {
     while (1)
     {
-        while (RTC.countlo % 16384 < 8192) asm("");
+        while (RTC.countlo % 32768 < 16384) asm("");
         GPIO.output_val &= ~BIT(19);
-        while (RTC.countlo % 16384 >= 8192) asm("");
+        while (RTC.countlo % 32768 >= 16384) asm("");
         GPIO.output_val |= BIT(19);
     }
 }

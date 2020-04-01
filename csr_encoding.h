@@ -126,6 +126,17 @@
 #define IRQ_COP      12
 #define IRQ_HOST     13
 
+#define EXC_INS_MISALIGN 0
+#define EXC_INS_FAULT    1
+#define EXC_ILLEGAL_INS  2
+#define EXC_BREAKPOINT   3
+#define EXC_LD_MISALIGN  4
+#define EXC_LD_FAULT     5
+#define EXC_ST_MISALIGN  6
+#define EXC_ST_FAULT     7
+#define EXC_ECALL_U      8
+#define EXC_ECALL_M      11
+
 #define MCAUSE_INT 0x80000000
 #define MCAUSE_CODE_MASK 0x3f
 

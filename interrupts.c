@@ -1,10 +1,9 @@
 #include "interrupts.h"
 #include "hifive1b.h"
 
-static 
-interrupt_handler plic_handlers[PLIC_NUM_INTERRUPTS];
-
+static interrupt_handler plic_handlers[PLIC_NUM_INTERRUPTS];
 static interrupt_handler timer_handler;
+
 
 void timer_set_handler(interrupt_handler proc)
 {
@@ -70,54 +69,56 @@ void __init_interrupts()
     disable_software_interrupts();
 }
 
-void __handle_plic_interrupt()
+// Blink a red LED to signify hardfault
+void __hardfault()
 {
-    uint32_t interrupt = PLIC.claim_complete;
-    if (interrupt < 1 || interrupt > PLIC_NUM_INTERRUPTS)
+    GPIO.output_en = BIT(22);
+    while (1)
     {
-        PLIC.claim_complete = interrupt;
-        return; // TODO: assert
+        GPIO.output_val = 0;
+        CLINT.mtime = 0;
+        while (CLINT.mtime < 4096) asm("");
+        GPIO.output_val = BIT(22);
+        CLINT.mtime = 0;
+        while (CLINT.mtime < 4096) asm("");
     }
-
-    if (plic_handlers[interrupt - 1])
-        plic_handlers[interrupt - 1]();
-
-    PLIC.claim_complete = interrupt;
-}
-
-void __handle_timer_interrupt()
-{
-    if (timer_handler)
-        timer_handler();
-}
-
-void __handle_software_interrupt()
-{
-
 }
 
 void __irq_handler(int cause)
 {
     int exception_code = cause & MCAUSE_CODE_MASK;
+    uint32_t ext_irq = 0;
+
     if (cause & MCAUSE_INT) // Interrupt
     {
         switch(exception_code)
         {
-            // TODO: add syscall and systick here
             case IRQ_M_SOFT:
-                __handle_software_interrupt();
                 break;
             case IRQ_M_TIMER:
-                __handle_timer_interrupt();
+                if (timer_handler)
+                    timer_handler();
                 break;
             case IRQ_M_EXT:
-                __handle_plic_interrupt();
+                ext_irq = PLIC.claim_complete;
+                if (ext_irq > 0 && plic_handlers[ext_irq - 1])
+                    plic_handlers[ext_irq - 1]();
+                PLIC.claim_complete = ext_irq;
                 break;
         }
     }
-    else // Hw exception
+    else // Hw exception or environment call
     {
-        // TODO: handle elsewhere? just trap?
+        switch(exception_code)
+        {
+            // Environment call from either user/machine mode
+            case EXC_ECALL_U:
+            case EXC_ECALL_M:
+                break;
+            default: // Unhandled hw exceptions
+                __hardfault();
+                break;
+        }
     }
 }
 
