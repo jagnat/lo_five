@@ -1,11 +1,20 @@
 #ifndef __TASK_H__
 #define __TASK_H__
 
+typedef enum _task_state_e task_state_e;
+enum _task_state_e
+{
+    READY = 0,
+    SUSPENDED = 1,
+    COMPLETE = 2,
+};
+
 typedef struct _task_t task_t;
 struct _task_t
 {
     task_t *next;
     unsigned *sp;
+    task_state_e state; 
     unsigned short priority;
     unsigned short effective_priority;
 };
@@ -32,8 +41,6 @@ void mut_unlock(mut_t *m);
 // Task utility functions
 void yield();
 void schedule();
-void enqueue_task(task_t *task);
-task_t* dequeue_task();
 
 /* This macro defines a new task with the specified parameters,
  * which will then be scheduled to run alongside the main task.
@@ -53,7 +60,7 @@ struct { \
     unsigned x24, x25, x26, x27; \
     unsigned x28, x29, x30, x31; \
 } static name = { \
-    {0, &(name.pc), priority, priority}, \
+    {0, &(name.pc), READY, priority, priority}, \
     {0}, \
     (unsigned)procedure, 0, (unsigned)(&(name.pc)), 0, \
     0, 0, 0, 0, \

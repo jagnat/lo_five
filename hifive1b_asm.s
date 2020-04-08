@@ -1,6 +1,9 @@
-    .global current_task
-    .global __INITIAL_SP
+.extern current_task
+.extern __INITIAL_SP
     
+.global __reset
+.global __irq_proc
+
 .macro SAVE_CTX
     addi sp, sp, -32*4
     sw x1,  1 *4(sp)
@@ -40,13 +43,18 @@
     sw sp, 4(t0)
 .endm
 
+# Check MSB of mcause, if it is clear, we are in
+# a HW exception, so MEPC points to the last instruction
+# that occurred. So we need to increment MEPC by 4
+# to point to the next instruction that should run.
 .macro SAVE_EPC
     csrr t0, mepc
+    csrr t1, mcause
+    srli t1, t1, 31
+    bne  t1, x0, __hw_int
+    addi t0, t0, 4
+__hw_int:
     sw t0, 0*4(sp)
-.endm
-
-.macro SAVE_RA
-    sw ra, 0*4(sp)
 .endm
 
 .macro LOAD_CTX
@@ -94,19 +102,14 @@
     addi sp, sp, 32 * 4
 .endm
 
-    .section .entry
-    .global __reset
-    .type __reset,@function
-    .align 2
+.section .entry
+.align 2
 __reset:
     lw sp, __INITIAL_SP
     call __init
 
-    .section .text
-
-    .global __irq_proc
-    .type __irq_proc,@function
-    .align 2
+.section .text
+.align 2
 __irq_proc:
     SAVE_CTX
     SAVE_EPC
@@ -115,3 +118,4 @@ __irq_proc:
     call __irq_handler
     LOAD_CTX
     mret
+
