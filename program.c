@@ -10,7 +10,6 @@ sem_t lock = {1, 0};
 
 void setup()
 {
-    disable_timer_interrupts();
     GPIO.output_en = BIT(21) | BIT(19);
     GPIO.output_xor = BIT(21) | BIT(19);
     GPIO.output_val = 0;
@@ -22,21 +21,23 @@ void setup()
 
 void loop()
 {
+    sem_wait(&lock);
     GPIO.output_val |= BIT(21);
     for (int i = 0; i < 4000000; i++) asm("");
     GPIO.output_val &= ~BIT(21);
     for (int i = 0; i < 4000000; i++) asm("");
-    asm("ecall");
+    sem_signal(&lock);
 }
 
 void task2()
 {
     while (1)
     {
+        sem_wait(&lock);
         GPIO.output_val |= BIT(19);
         for (int i = 0; i < 4000000; i++) asm("");
         GPIO.output_val &= ~BIT(19);
         for (int i = 0; i < 4000000; i++) asm("");
-        asm("ecall");
+        sem_signal(&lock);
     }
 }
