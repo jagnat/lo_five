@@ -17,6 +17,48 @@ void __systick();
 void enqueue_task(task_t *task, task_t **list);
 task_t *dequeue_task(task_t **list);
 
+void sem_wait(sem_t *s)
+{
+    disable_interrupts();
+    if (s->count > 0)
+        s->count--;
+    else
+    {
+        enqueue_task(current_task, &s->waiting);
+        current_task->state = SUSPENDED;
+        asm("ecall");
+    }
+    enable_interrupts();
+}
+
+void sem_signal(sem_t *s)
+{
+    disable_interrupts();
+    if (s->waiting == 0)
+        s->count++;
+    else
+    {
+        task_t *released = dequeue_task(&s->waiting);
+        released->state = READY;
+        enqueue_task(released, &ready_tasks);
+        asm("ecall");
+    }
+    enable_interrupts();
+}
+
+void mut_lock(mut_t *m)
+{
+}
+
+void mut_unlock(mut_t *m)
+{
+}
+
+void yield()
+{
+    asm("ecall");
+}
+
 void __init_tasks()
 {
     extern task_t* __TASKS_ADDR;
@@ -42,11 +84,11 @@ void __init_tasks()
 
 void __systick()
 {    
-    schedule();
+    __schedule();
     CLINT.mtime = 0;
 }
 
-void schedule()
+void __schedule()
 {
     // TODO: Should we disable interrupts?
 
@@ -85,42 +127,5 @@ task_t* dequeue_task(task_t **list)
     }
 
     return res;
-}
-
-void sem_wait(sem_t *s)
-{
-    disable_interrupts();
-    if (s->count > 0)
-        s->count--;
-    else
-    {
-        enqueue_task(current_task, &s->waiting);
-        current_task->state = SUSPENDED;
-        asm("ecall");
-    }
-    enable_interrupts();
-}
-
-void sem_signal(sem_t *s)
-{
-    disable_interrupts();
-    if (s->waiting == 0)
-        s->count++;
-    else
-    {
-        task_t *released = dequeue_task(&s->waiting);
-        released->state = READY;
-        enqueue_task(released, &ready_tasks);
-        asm("ecall");
-    }
-    enable_interrupts();
-}
-
-void mut_lock(mut_t *m)
-{
-}
-
-void mut_unlock(mut_t *m)
-{
 }
 

@@ -22,4 +22,6 @@ void plic_set_handler(int interrupt, interrupt_handler proc);
 void plic_enable (int interrupt, int priority);
 void plic_disable(int interrupt);
 
+extern const bool __in_irq;
+
 #endif

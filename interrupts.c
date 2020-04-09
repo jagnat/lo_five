@@ -4,7 +4,6 @@
 static interrupt_handler plic_handlers[PLIC_NUM_INTERRUPTS];
 static interrupt_handler timer_handler;
 
-
 void timer_set_handler(interrupt_handler proc)
 {
     timer_handler = proc;
