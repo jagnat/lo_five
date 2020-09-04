@@ -14,6 +14,7 @@ static task_t *ready_tasks;
 const int HZ = 1000;
 
 void __systick();
+void __schedule();
 void enqueue_task(task_t *task, task_t **list);
 task_t *dequeue_task(task_t **list);
 

@@ -96,6 +96,9 @@ volatile struct __PRCI
 
 volatile struct __GPIO
 {
+#define RED_LED_PIN    BIT(22)
+#define GREEN_LED_PIN  BIT(19)
+#define BLUE_LED_PIN   BIT(21)
     uint32_t input_val;
     uint32_t input_en;
     uint32_t output_en;

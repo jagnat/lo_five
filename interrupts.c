@@ -108,12 +108,12 @@ void __irq_handler(int cause)
     }
     else // Hw exception or environment call
     {
-        void schedule();
+        void __schedule();
         switch(exception_code)
         {
             // Environment call from either user/machine mode
             case EXC_ECALL_M:
-                schedule();
+                __schedule();
                 break;
             default: // Unhandled hw exceptions
                 __hardfault();
