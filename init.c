@@ -122,13 +122,12 @@ void __init()
     extern void __init_tasks();
     __init_tasks();
 
-    enable_timer_interrupts();
-
     if (setup)
     {
         setup();
     }
 
+    enable_timer_interrupts();
     enable_interrupts();
 
     while (loop)

@@ -27,6 +27,7 @@ void sem_wait(sem_t *s)
     {
         enqueue_task(current_task, &s->waiting);
         current_task->state = SUSPENDED;
+        enable_interrupts();
         asm("ecall");
     }
     enable_interrupts();
@@ -42,6 +43,7 @@ void sem_signal(sem_t *s)
         task_t *released = dequeue_task(&s->waiting);
         released->state = READY;
         enqueue_task(released, &ready_tasks);
+        enable_interrupts();
         asm("ecall");
     }
     enable_interrupts();
