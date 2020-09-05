@@ -3,12 +3,12 @@
 #include "hifive1b.h"
 #include "interrupts.h"
 
-NEW_TASK(main_task, 0, 0, 221, 0);
+NEW_TASK(main_task, 0, NUM_TASK_PRIORITIES - 1, 221, 0);
 void* const __INITIAL_SP = (void*)(&main_task + 1);
 
 task_t *current_task;
 
-static task_t *ready_tasks;
+static task_t *ready_tasks[NUM_TASK_PRIORITIES];
 
 // The timer frequency for preemptive task scheduling
 const int HZ = 1000;
@@ -16,7 +16,9 @@ const int HZ = 1000;
 void __systick();
 void __schedule();
 void enqueue_task(task_t *task, task_t **list);
-task_t *dequeue_task(task_t **list);
+task_t* dequeue_task(task_t **list);
+void add_task_to_ready_queue(task_t* task);
+task_t* get_ready_task();
 
 void sem_wait(sem_t *s)
 {
@@ -42,7 +44,8 @@ void sem_signal(sem_t *s)
     {
         task_t *released = dequeue_task(&s->waiting);
         released->state = READY;
-        enqueue_task(released, &ready_tasks);
+        //enqueue_task(released, &ready_tasks);
+        add_task_to_ready_queue(released);
         enable_interrupts();
         asm("ecall");
     }
@@ -73,7 +76,8 @@ void __init_tasks()
     {
         if (*task_walk != __main_task_ptr)
         {
-            enqueue_task(*task_walk, &ready_tasks);
+            //enqueue_task(*task_walk, &ready_tasks);
+            add_task_to_ready_queue(*task_walk);
         }
         task_walk++;
     }
@@ -93,16 +97,16 @@ void __systick()
 
 void __schedule()
 {
-    // TODO: Should we disable interrupts?
-
     task_t *prev = current_task;
 
     if (current_task->state == READY)
     {
-        enqueue_task(current_task, &ready_tasks);
+        //enqueue_task(current_task, &ready_tasks);
+        add_task_to_ready_queue(current_task);
     }
 
-    current_task = dequeue_task(&ready_tasks);
+    //current_task = dequeue_task(&ready_tasks);
+    current_task = get_ready_task();
 }
 
 // TODO: Make this no be an O(n) operation
@@ -130,5 +134,20 @@ task_t* dequeue_task(task_t **list)
     }
 
     return res;
+}
+
+void add_task_to_ready_queue(task_t *task)
+{
+    enqueue_task(task, ready_tasks + task->priority);
+}
+
+task_t* get_ready_task()
+{
+    for (int i = 0; i < NUM_TASK_PRIORITIES; i++)
+    {
+        if (ready_tasks[i])
+            return dequeue_task(ready_tasks + i);
+    }
+    return 0;
 }
 

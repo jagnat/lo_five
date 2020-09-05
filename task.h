@@ -9,6 +9,8 @@ enum _task_state_e
     COMPLETE = 2,
 };
 
+#define NUM_TASK_PRIORITIES 4
+
 typedef struct _task_t task_t;
 struct _task_t
 {
