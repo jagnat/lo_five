@@ -16,6 +16,7 @@ static inline void disable_software_interrupts() { clear_csr(mie, MIP_MSIP); }
 typedef void (*interrupt_handler)(void);
 
 void timer_set_handler(interrupt_handler proc);
+void ecall_set_handler(interrupt_handler proc);
 
 void plic_clear();
 void plic_set_handler(int interrupt, interrupt_handler proc);

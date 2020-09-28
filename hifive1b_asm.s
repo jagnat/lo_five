@@ -3,6 +3,7 @@
     
 .global __reset
 .global __irq_proc
+.global in_irq
 
 .macro SAVE_CTX
     addi sp, sp, -32*4

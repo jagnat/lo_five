@@ -1,12 +1,18 @@
-#include "interrupts.h"
+#include "interrupt.h"
 #include "hifive1b.h"
 
 static interrupt_handler plic_handlers[PLIC_NUM_INTERRUPTS];
 static interrupt_handler timer_handler;
+static interrupt_handler ecall_handler;
 
 void timer_set_handler(interrupt_handler proc)
 {
     timer_handler = proc;
+}
+
+void ecall_set_handler(interrupt_handler proc)
+{
+    ecall_handler = proc;
 }
 
 void plic_clear()
@@ -113,7 +119,8 @@ void __irq_handler(int cause)
         {
             // Environment call from either user/machine mode
             case EXC_ECALL_M:
-                __schedule();
+                if (ecall_handler)
+                    ecall_handler();
                 break;
             default: // Unhandled hw exceptions
                 __hardfault();

@@ -1,7 +1,7 @@
 #include "task.h"
 
 #include "hifive1b.h"
-#include "interrupts.h"
+#include "interrupt.h"
 
 NEW_TASK(main_task, 0, NUM_TASK_PRIORITIES - 1, 221, 0);
 void* const __INITIAL_SP = (void*)(&main_task + 1);
@@ -15,6 +15,7 @@ const int HZ = 1000;
 
 void __systick();
 void __schedule();
+
 void enqueue_task(task_t *task, task_t **list);
 task_t* dequeue_task(task_t **list);
 void add_task_to_ready_queue(task_t* task);
@@ -52,12 +53,18 @@ void sem_signal(sem_t *s)
     enable_interrupts();
 }
 
-void mut_lock(mut_t *m)
+void sem_signal_from_isr(sem_t *s)
 {
-}
-
-void mut_unlock(mut_t *m)
-{
+    if (s->waiting == 0)
+        s->count++;
+    else
+    {
+        task_t *released = dequeue_task(&s->waiting);
+        released->state = READY;
+        //enqueue_task(released, &ready_tasks);
+        add_task_to_ready_queue(released);
+        __schedule();
+    }
 }
 
 void yield()
@@ -87,6 +94,7 @@ void __init_tasks()
     CLINT.mtimecmp = 32768 / HZ;
 
     timer_set_handler(__systick);
+    ecall_set_handler(__schedule);
 }
 
 void __systick()

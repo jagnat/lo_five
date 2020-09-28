@@ -1,6 +1,6 @@
 #include "hifive1b.h"
 #include "task.h"
-#include "interrupts.h"
+#include "interrupt.h"
 
 void task2();
 void task1();

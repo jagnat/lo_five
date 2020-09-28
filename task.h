@@ -29,20 +29,9 @@ typedef struct
 
 void sem_wait(sem_t *s);
 void sem_signal(sem_t *s);
+void sem_signal_from_isr(sem_t *s);
 
-typedef struct
-{
-    unsigned locked;
-    task_t* waiting;
-    task_t* owner;
-} mut_t;
-
-void mut_lock(mut_t *m);
-void mut_unlock(mut_t *m);
-
-// Task utility functions
 void yield();
-void schedule();
 
 /* This macro defines a new task with the specified parameters,
  * which will then be scheduled to run alongside the main task.

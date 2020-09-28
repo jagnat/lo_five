@@ -1,5 +1,5 @@
 #include "hifive1b.h"
-#include "interrupts.h"
+#include "interrupt.h"
 #include "task.h"
 
 void setup() __attribute((weak));
