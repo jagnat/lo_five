@@ -5,6 +5,8 @@
 void setup() __attribute((weak));
 void loop() __attribute((weak));
 
+uint32_t cpu_freq = 0;
+
 void __use_hfrosc()
 {
     // Should be default chip values
@@ -33,13 +35,16 @@ void __init_pll()
     // Bypass PLL while configuring
     PRCI.pllcfg |= PLL_BYPASS;
 
-
     // Configure pll values
+    // Formula: Hz = ((pllref / R) * F) / Q
+    // In this case: ((16mhz / R=2) * F=64) / Q=2 = 256 mhz
+
     uint32_t pll = 0;
     pll |= (1 << PLL_R_SHIFT); // Set R = 2 (value + 1)
     pll |= (31 << PLL_F_SHIFT); // Set F = 64 ((value + 1) * 2)
-    pll |= (1 << PLL_Q_SHIFT); // Set q = 2 (value + 1, 0 not supported)
+    pll |= (1 << PLL_Q_SHIFT); // Set Q = 2 (value + 1, 0 not supported)
     pll |= PLL_BYPASS; // Enable bypass while setting values
+    cpu_freq = 256 * 1024 * 1024;
 
     // Set no final division
     PRCI.plloutdiv = PLL_DIVIDE_BY_1;

@@ -1,5 +1,4 @@
-#ifndef __HIFIVE1B_H__
-#define __HIFIVE1B_H__
+#pragma once
 
 #include "csr_encoding.h"
 #include "stdint.h"
@@ -99,6 +98,8 @@ volatile struct __GPIO
 #define RED_LED_PIN    BIT(22)
 #define GREEN_LED_PIN  BIT(19)
 #define BLUE_LED_PIN   BIT(21)
+#define I2C_SDA_PIN    BIT(12)
+#define I2C_SCL_PIN    BIT(13)
     uint32_t input_val;
     uint32_t input_en;
     uint32_t output_en;
@@ -256,14 +257,22 @@ volatile extern struct __SPI QSPI0;
 volatile extern struct __SPI  SPI1;
 volatile extern struct __SPI  SPI2;
 
-volatile struct
+volatile struct __I2C
 {
     uint32_t prescale_lo;
     uint32_t prescale_hi;
+    
+    #define I2C_CTR_EN BIT(7)
+    #define I2C_CTR_IEN BIT(6)
     uint32_t control;
-    uint32_t transmit;
-    uint32_t receive;
-    uint32_t command_status;
+    uint32_t data;
+#define I2C_CMD_STA  BIT(7)
+#define I2C_CMD_STO  BIT(6)
+#define I2C_CMD_RD   BIT(5)
+#define I2C_CMD_WR   BIT(4)
+#define I2C_CMD_ACK  BIT(3)
+#define I2C_CMD_IACK BIT(0)
+#define I2C_STAT_ACK  BIT(7)
+    uint32_t csr;
 } extern I2C;
 
-#endif // __HIFIVE1B_H__

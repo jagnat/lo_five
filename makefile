@@ -1,12 +1,12 @@
 
 OUTPUT=lofive
-OBJS = init.o interrupt.o hifive1b_asm.o task.o program.o
+OBJS = sys.o interrupt.o hifive1b_asm.o task.o program.o i2c.o
 
 $(OUTPUT): $(OBJS) hifive1b.h hifive1b.ld
 	riscv-sifive-elf-ld -melf32lriscv -T hifive1b.ld -o $(OUTPUT) $(OBJS)
 	riscv-sifive-elf-objcopy $(OUTPUT) -O ihex $(OUTPUT).hex
 
-init.o hifive1b_asm.o task.o: task.h
+sys.o hifive1b_asm.o task.o: task.h
 
 %.o: %.c
 	riscv-sifive-elf-gcc $< -c -g -march=rv32imac -mabi=ilp32 -mcmodel=medany

@@ -23,7 +23,7 @@ task_t* get_ready_task();
 
 void sem_wait(sem_t *s)
 {
-    disable_interrupts();
+    int prev = disable_interrupts();
     if (s->count > 0)
         s->count--;
     else
@@ -33,38 +33,24 @@ void sem_wait(sem_t *s)
         enable_interrupts();
         asm("ecall");
     }
-    enable_interrupts();
+    restore_interrupts(prev);
 }
 
 void sem_signal(sem_t *s)
 {
-    disable_interrupts();
+    int prev = disable_interrupts();
     if (s->waiting == 0)
         s->count++;
     else
     {
         task_t *released = dequeue_task(&s->waiting);
         released->state = READY;
-        //enqueue_task(released, &ready_tasks);
         add_task_to_ready_queue(released);
         enable_interrupts();
         asm("ecall");
+        // or schedule
     }
-    enable_interrupts();
-}
-
-void sem_signal_from_isr(sem_t *s)
-{
-    if (s->waiting == 0)
-        s->count++;
-    else
-    {
-        task_t *released = dequeue_task(&s->waiting);
-        released->state = READY;
-        //enqueue_task(released, &ready_tasks);
-        add_task_to_ready_queue(released);
-        __schedule();
-    }
+    restore_interrupts(prev);
 }
 
 void yield()
@@ -109,11 +95,9 @@ void __schedule()
 
     if (current_task->state == READY)
     {
-        //enqueue_task(current_task, &ready_tasks);
         add_task_to_ready_queue(current_task);
     }
 
-    //current_task = dequeue_task(&ready_tasks);
     current_task = get_ready_task();
 }
 

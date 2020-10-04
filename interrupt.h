@@ -1,10 +1,32 @@
-#ifndef __INTERRUPTS_H__
-#define __INTERRUPTS_H__
+
+#pragma once
 
 #include "hifive1b.h"
 
-static inline void enable_interrupts() { set_csr(mstatus, MSTATUS_MIE); }
-static inline void disable_interrupts() { clear_csr(mstatus, MSTATUS_MIE); }
+static inline int enable_interrupts()
+{
+    unsigned prev = read_csr(mstatus);
+    set_csr(mstatus, MSTATUS_MIE);
+    return prev & MSTATUS_MIE;
+}
+static inline int disable_interrupts()
+{
+    unsigned prev = read_csr(mstatus);
+    clear_csr(mstatus, MSTATUS_MIE);
+    return prev & MSTATUS_MIE;
+}
+
+static inline void restore_interrupts(int prev)
+{
+    if (prev)
+    {
+        set_csr(mstatus, MSTATUS_MIE);
+    }
+    else
+    {
+        clear_csr(mstatus, MSTATUS_MIE);
+    }
+}
 
 static inline void enable_external_interrupts() { set_csr(mie, MIP_MEIP); }
 static inline void disable_external_interrupts() { clear_csr(mie, MIP_MEIP); }
@@ -23,6 +45,5 @@ void plic_set_handler(int interrupt, interrupt_handler proc);
 void plic_enable (int interrupt, int priority);
 void plic_disable(int interrupt);
 
-extern const int __in_irq;
+int in_irq();
 
-#endif

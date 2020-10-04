@@ -4,6 +4,13 @@
 static interrupt_handler plic_handlers[PLIC_NUM_INTERRUPTS];
 static interrupt_handler timer_handler;
 static interrupt_handler ecall_handler;
+typedef struct
+{
+    uint32_t x[32];
+    uint32_t mcause;
+    uint32_t mstatus;
+    uint32_t mscratch;
+} __irq_frame;
 
 void timer_set_handler(interrupt_handler proc)
 {
@@ -75,11 +82,13 @@ void __init_interrupts()
 }
 
 // Blink a red LED to signify hardfault
-void __hardfault()
+void __hardfault(__irq_frame* frame)
 {
+    volatile int j = 0;
     GPIO.output_en = BIT(22);
     while (1)
     {
+        j = frame->x[0];
         GPIO.output_val = 0;
         CLINT.mtime = 0;
         while (CLINT.mtime < 4096) asm("");
@@ -89,12 +98,16 @@ void __hardfault()
     }
 }
 
-void __irq_handler(int cause)
+int in_irq()
 {
-    int exception_code = cause & MCAUSE_CODE_MASK;
+}
+
+void __irq_handler(__irq_frame* frame)
+{
+    int exception_code = frame->mcause & MCAUSE_CODE_MASK;
     uint32_t ext_irq = 0;
 
-    if (cause & MCAUSE_INT) // Interrupt
+    if (frame->mcause & MCAUSE_INT) // Interrupt
     {
         switch(exception_code)
         {
@@ -123,7 +136,7 @@ void __irq_handler(int cause)
                     ecall_handler();
                 break;
             default: // Unhandled hw exceptions
-                __hardfault();
+                __hardfault(frame);
                 break;
         }
     }

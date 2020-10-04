@@ -1,5 +1,4 @@
-#ifndef __TASK_H__
-#define __TASK_H__
+#pragma once
 
 typedef enum _task_state_e task_state_e;
 enum _task_state_e
@@ -29,7 +28,6 @@ typedef struct
 
 void sem_wait(sem_t *s);
 void sem_signal(sem_t *s);
-void sem_signal_from_isr(sem_t *s);
 
 void yield();
 
@@ -50,6 +48,7 @@ struct { \
     unsigned x20, x21, x22, x23; \
     unsigned x24, x25, x26, x27; \
     unsigned x28, x29, x30, x31; \
+    unsigned mcause, mstatus, mscratch; \
 } static name = { \
     {0, &(name.pc), READY, priority, priority}, \
     {0}, \
@@ -60,8 +59,8 @@ struct { \
     0, 0, 0, 0, \
     0, 0, 0, 0, \
     0, 0, 0, 0, \
-    0, 0, 0, 0 \
+    0, 0, 0, 0, \
+    0, 0, 0, \
 }; \
 void* const __##name##_ptr __attribute((section(".tasks"))) = &name;
 
-#endif // __TASK_H__
