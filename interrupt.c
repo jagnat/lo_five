@@ -98,10 +98,6 @@ void __hardfault(__irq_frame* frame)
     }
 }
 
-int in_irq()
-{
-}
-
 void __irq_handler(__irq_frame* frame)
 {
     int exception_code = frame->mcause & MCAUSE_CODE_MASK;

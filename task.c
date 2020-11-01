@@ -30,8 +30,7 @@ void sem_wait(sem_t *s)
     {
         enqueue_task(current_task, &s->waiting);
         current_task->state = SUSPENDED;
-        enable_interrupts();
-        asm("ecall");
+        yield();
     }
     restore_interrupts(prev);
 }
@@ -46,16 +45,32 @@ void sem_signal(sem_t *s)
         task_t *released = dequeue_task(&s->waiting);
         released->state = READY;
         add_task_to_ready_queue(released);
-        enable_interrupts();
-        asm("ecall");
-        // or schedule
+        yield();
     }
     restore_interrupts(prev);
 }
 
+void sem_signal_from_isr(sem_t *s)
+{
+    int prev = disable_interrupts();
+    if (s->waiting == 0)
+        s->count++;
+    else
+    {
+        task_t *released = dequeue_task(&s->waiting);
+        released->state = READY;
+        add_task_to_ready_queue(released);
+        __schedule();
+    }
+    restore_interrupts(prev);
+
+}
+
 void yield()
 {
+    int prev = enable_interrupts();
     asm("ecall");
+    restore_interrupts(prev);
 }
 
 void __init_tasks()

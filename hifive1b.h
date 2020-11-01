@@ -16,6 +16,7 @@ volatile struct __CLINT
 #define PLIC_NUM_INTERRUPTS 52
 volatile struct __PLIC
 {
+    #define PLIC_INT_RTC 2
     #define PLIC_INT_I2C 52
     uint32_t priority[53];
     uint32_t reserved0[971];

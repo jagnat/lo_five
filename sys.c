@@ -133,6 +133,7 @@ void __init()
     }
 
     enable_timer_interrupts();
+    enable_external_interrupts();
     enable_interrupts();
 
     while (loop)

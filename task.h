@@ -28,6 +28,7 @@ typedef struct
 
 void sem_wait(sem_t *s);
 void sem_signal(sem_t *s);
+void sem_signal_from_isr(sem_t *s);
 
 void yield();
 
