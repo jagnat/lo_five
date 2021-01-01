@@ -1,3 +1,4 @@
+#include "sys.h"
 #include "hifive1b.h"
 #include "interrupt.h"
 #include "task.h"
@@ -132,7 +133,7 @@ void __init()
         setup();
     }
 
-    enable_timer_interrupts();
+    //enable_timer_interrupts();
     enable_external_interrupts();
     enable_interrupts();
 

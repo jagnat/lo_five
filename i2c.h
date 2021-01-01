@@ -1,6 +1,9 @@
 #pragma once
 
-typedef char (*i2c_buf_callback)(void*, int);
-
 void i2c_init();
-void i2c_write(char addr, int count, i2c_buf_callback callback, void* arg);
+
+// This function provides 
+typedef char (*i2c_write_callback)(void* /* passthrough */, int /* index */);
+
+void i2c_write(char addr, int count, i2c_write_callback callback, void* arg);
+void i2c_write_buf(char addr, int count, char* buf);

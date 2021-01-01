@@ -7,9 +7,6 @@ static interrupt_handler ecall_handler;
 typedef struct
 {
     uint32_t x[32];
-    uint32_t mcause;
-    uint32_t mstatus;
-    uint32_t mscratch;
 } __irq_frame;
 
 void timer_set_handler(interrupt_handler proc)
@@ -100,10 +97,11 @@ void __hardfault(__irq_frame* frame)
 
 void __irq_handler(__irq_frame* frame)
 {
-    int exception_code = frame->mcause & MCAUSE_CODE_MASK;
+    uint32_t mcause = read_csr(mcause);
+    int exception_code = mcause & MCAUSE_CODE_MASK;
     uint32_t ext_irq = 0;
 
-    if (frame->mcause & MCAUSE_INT) // Interrupt
+    if (mcause & MCAUSE_INT) // Interrupt
     {
         switch(exception_code)
         {

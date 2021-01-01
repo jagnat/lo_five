@@ -5,7 +5,7 @@
 .global __irq_proc
 
 .macro SAVE_CTX
-    addi sp, sp, -35*4
+    addi sp, sp, -32*4
     sw x1,  1 *4(sp)
     sw x2,  2 *4(sp)
     sw x3,  3 *4(sp)
@@ -37,12 +37,6 @@
     sw x29, 29*4(sp)
     sw x30, 30*4(sp)
     sw x31, 31*4(sp)
-    csrr t0, mcause
-    sw t0, 32*4(sp)
-    csrr t0, mstatus
-    sw t0, 33*4(sp)
-    csrr t0, mscratch
-    sw t0, 34*4(sp)
 
     # Store sp in current task block
     lw t0, current_task
@@ -71,10 +65,6 @@ __hw_int:
     # Load pc from top of current task stack
     lw t0,  0 *4(sp)
     csrw mepc, t0
-
-    # Load mstatus
-    #lw t0, 33*4(sp)
-    #csrw mstatus, t0
 
     # Load the rest of the regs
     lw x1,  1 *4(sp)
@@ -109,7 +99,7 @@ __hw_int:
     lw x30, 30*4(sp)
     lw x31, 31*4(sp)
 
-    addi sp, sp, 35*4
+    addi sp, sp, 32*4
 .endm
 
 .section .entry
@@ -123,8 +113,13 @@ __reset:
 __irq_proc:
     SAVE_CTX
     SAVE_EPC
-    # Pass cause as first arg to handler
+    # Pass base of stored stack context in arg0
     mv a0,sp 
+
+    # Change sp to main stack
+    lw t0, __main_task_ptr
+    lw sp, 4(t0)
+
     call __irq_handler
     LOAD_CTX
     mret

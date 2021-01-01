@@ -3,7 +3,10 @@
 #include "hifive1b.h"
 #include "interrupt.h"
 
-NEW_TASK(main_task, 0, NUM_TASK_PRIORITIES - 1, 221, 0);
+void __idle_task();
+
+NEW_TASK(idle_task, __idle_task, NUM_TASK_PRIORITIES - 1, 4, 0);
+NEW_TASK(main_task, 0, NUM_TASK_PRIORITIES - 1, 128, 0);
 void* const __INITIAL_SP = (void*)(&main_task + 1);
 
 task_t *current_task;
@@ -82,9 +85,8 @@ void __init_tasks()
 
     while (task_walk != &__TASKS_END)
     {
-        if (*task_walk != __main_task_ptr)
+        if (*task_walk != __main_task_ptr && *task_walk != __idle_task_ptr)
         {
-            //enqueue_task(*task_walk, &ready_tasks);
             add_task_to_ready_queue(*task_walk);
         }
         task_walk++;
@@ -98,6 +100,14 @@ void __init_tasks()
     ecall_set_handler(__schedule);
 }
 
+void __idle_task()
+{
+    while (1)
+    {
+        asm("wfi");
+    }
+}
+
 void __systick()
 {    
     __schedule();
@@ -108,7 +118,7 @@ void __schedule()
 {
     task_t *prev = current_task;
 
-    if (current_task->state == READY)
+    if (current_task->state == READY && current_task != &idle_task.task)
     {
         add_task_to_ready_queue(current_task);
     }
@@ -155,6 +165,6 @@ task_t* get_ready_task()
         if (ready_tasks[i])
             return dequeue_task(ready_tasks + i);
     }
-    return 0;
+    return &idle_task.task;
 }
 

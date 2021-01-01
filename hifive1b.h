@@ -2,6 +2,7 @@
 
 #include "csr_encoding.h"
 #include "stdint.h"
+#include "stddef.h"
 #define BIT(x) (1 << x)
 
 volatile struct __CLINT

@@ -40,7 +40,7 @@ void yield();
 #define NEW_TASK(name, procedure, priority, stacksize, arg) \
 struct { \
     task_t task; \
-    unsigned stack[stacksize]; \
+    unsigned stack[(stacksize)]; \
     unsigned pc,  x1,  x2,  x3; \
     unsigned x4,  x5,  x6,  x7; \
     unsigned x8,  x9,  x10, x11; \
@@ -49,7 +49,6 @@ struct { \
     unsigned x20, x21, x22, x23; \
     unsigned x24, x25, x26, x27; \
     unsigned x28, x29, x30, x31; \
-    unsigned mcause, mstatus, mscratch; \
 } static name = { \
     {0, &(name.pc), READY, priority, priority}, \
     {0}, \
@@ -61,7 +60,6 @@ struct { \
     0, 0, 0, 0, \
     0, 0, 0, 0, \
     0, 0, 0, 0, \
-    0, 0, 0, \
 }; \
 void* const __##name##_ptr __attribute((section(".tasks"))) = &name;
 
